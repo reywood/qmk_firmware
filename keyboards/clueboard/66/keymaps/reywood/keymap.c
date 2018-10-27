@@ -38,20 +38,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 
-// static uint8_t current_led_position;
-// static uint16_t last_rgb_update;
-
 static uint32_t last_key_press;
 #define SLEEP_TIMEOUT_IN_MS 300000
-
 
 void matrix_init_user(void) {
   rgb_ripple_init();
   last_key_press = timer_read32();
-  // current_led_position = 0;
-  // last_rgb_update = timer_read();
-  // rgblight_enable();
-  // rgblight_setrgb(0, 0, 0);
 }
 
 void matrix_scan_user(void) {
@@ -61,32 +53,11 @@ void matrix_scan_user(void) {
   } else {
     rgb_ripple_update_display();
   }
-  // if (timer_elapsed(last_rgb_update) > 2000 && current_led_position < RGBLED_NUM) {
-  //   last_rgb_update = timer_read();
-  //   led[current_led_position].r = 0xff;
-  //   rgblight_set();
-  //   current_led_position++;
-  // }
 }
-
-// void print_debug_info(keyrecord_t *record) {
-//   keypos_t key = record->event.key;
-//   // if (key.row < 3) {
-//     char info[23];
-//     sprintf(info, "row: %d, column: %d\n", key.row, key.col);
-//     send_string(info);
-//     // sprintf(info, "RGBLED_NUM: %d\n", RGBLED_NUM);
-//     // send_string(info);
-//   // }
-// }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   rgb_ripple_record_key_press(record);
   last_key_press = timer_read32();
-
-  // if (record->event.pressed) {
-  //   print_debug_info(record);
-  // }
 
   return true;
 }
