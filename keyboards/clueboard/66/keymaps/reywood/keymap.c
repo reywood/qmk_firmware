@@ -1,0 +1,92 @@
+#include "66.h"
+#include "rgb_ripple.h"
+#include "timer.h"
+
+// Each layer gets a name for readability, which is then used in the keymap matrix below.
+// The underscores don't mean anything - you can have a layer called STUFF or any other name.
+#define _BL 0
+#define _FL 1
+#define _CL 2
+
+const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+  /* Keymap _BL: Base Layer (Default Layer)
+   */
+[_BL] = LAYOUT(
+  KC_GESC,KC_1,   KC_2,   KC_3,   KC_4,   KC_5,   KC_6,   KC_7,   KC_8,   KC_9,   KC_0,   KC_MINS,KC_EQL, KC_GRV, KC_BSPC,        KC_PGUP,
+  KC_TAB, KC_Q,   KC_W,   KC_E,   KC_R,   KC_T,   KC_Y,   KC_U,   KC_I,   KC_O,   KC_P,   KC_LBRC,KC_RBRC,KC_BSLS,                KC_PGDN,
+  KC_CAPS,KC_A,   KC_S,   KC_D,   KC_F,   KC_G,   KC_H,   KC_J,   KC_K,   KC_L,   KC_SCLN,KC_QUOT,KC_NUHS,KC_ENT,
+  KC_LSFT,_______,KC_Z,   KC_X,   KC_C,   KC_V,   KC_B,   KC_N,   KC_M,   KC_COMM,KC_DOT, KC_SLSH,KC_DEL,  KC_RSFT,       KC_UP,
+  KC_LCTL,KC_LALT,KC_LGUI,_______,        KC_SPC, KC_SPC,                         _______,KC_RGUI,MO(_FL),KC_RALT,KC_LEFT,KC_DOWN,KC_RGHT),
+
+  /* Keymap _FL: Function Layer
+   */
+[_FL] = LAYOUT(
+  KC_GRV, KC_F1,  KC_F2,  KC_F3,  KC_F4,  KC_F5,  KC_F6,  KC_F7,  KC_F8,  KC_F9,  KC_F10, KC_F11, KC_F12, _______,KC_DEL,         KC_VOLU,
+  _______,_______,_______, KC_UP ,_______,_______,_______,_______,_______,_______,_______,_______,_______,KC_MUTE,                KC_VOLD,
+  _______,_______,KC_LEFT,KC_DOWN,KC_RGHT,_______,_______,_______,_______,_______,_______,_______,_______,_______,
+  _______,_______,MO(_CL),_______,_______,_______,_______,_______,_______,_______,_______,_______,RESET,_______,        KC_VOLU,
+  _______,_______,_______,_______,        KC_MPLY,KC_MPLY,                        _______,_______,MO(_FL),_______,KC_MPRV,KC_VOLD,KC_MNXT),
+
+  /* Keymap _CL: Control layer
+   */
+// [_CL] = LAYOUT(
+//   BL_STEP,RGB_M_P,RGB_M_B,RGB_M_R,RGB_M_SW,RGB_M_SN,RGB_M_K,RGB_M_X,RGB_M_G,_______,_______,_______,_______,_______,RGB_TOG,        RGB_VAI,
+//   _______,_______,_______,_______,_______,_______,_______,_______,_______,_______,_______,_______,_______,_______,                RGB_VAD,
+//   _______,_______,MO(_CL),_______,_______,_______,_______,_______,_______,_______,_______,_______,_______,_______,
+//   MO(_FL),_______,_______,_______,_______,_______,_______,_______,_______,_______,_______,_______,_______,_______,        RGB_SAI,
+//   _______,_______,RGB_RMOD,_______,        RGB_MOD,   RGB_MOD,                    _______,_______,MO(_FL),_______,RGB_HUD,RGB_SAD,RGB_HUI),
+};
+
+
+// static uint8_t current_led_position;
+// static uint16_t last_rgb_update;
+
+static uint32_t last_key_press;
+#define SLEEP_TIMEOUT_IN_MS 300000
+
+
+void matrix_init_user(void) {
+  rgb_ripple_init();
+  last_key_press = timer_read32();
+  // current_led_position = 0;
+  // last_rgb_update = timer_read();
+  // rgblight_enable();
+  // rgblight_setrgb(0, 0, 0);
+}
+
+void matrix_scan_user(void) {
+  bool should_sleep = timer_elapsed32(last_key_press) > SLEEP_TIMEOUT_IN_MS;
+  if (should_sleep) {
+    rgblight_setrgb(0, 0, 0);
+  } else {
+    rgb_ripple_update_display();
+  }
+  // if (timer_elapsed(last_rgb_update) > 2000 && current_led_position < RGBLED_NUM) {
+  //   last_rgb_update = timer_read();
+  //   led[current_led_position].r = 0xff;
+  //   rgblight_set();
+  //   current_led_position++;
+  // }
+}
+
+// void print_debug_info(keyrecord_t *record) {
+//   keypos_t key = record->event.key;
+//   // if (key.row < 3) {
+//     char info[23];
+//     sprintf(info, "row: %d, column: %d\n", key.row, key.col);
+//     send_string(info);
+//     // sprintf(info, "RGBLED_NUM: %d\n", RGBLED_NUM);
+//     // send_string(info);
+//   // }
+// }
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  rgb_ripple_record_key_press(record);
+  last_key_press = timer_read32();
+
+  // if (record->event.pressed) {
+  //   print_debug_info(record);
+  // }
+
+  return true;
+}
