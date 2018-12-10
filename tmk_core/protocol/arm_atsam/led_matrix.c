@@ -461,7 +461,7 @@ uint8_t led_matrix_init(void)
 
     //Run led matrix code once for initial LED coloring
     led_cur = 0;
-    led_matix_init_user();
+    rgb_matrix_init_user();
     led_matrix_run();
 
     DBGC(DC_LED_MATRIX_INIT_COMPLETE);
@@ -470,7 +470,7 @@ uint8_t led_matrix_init(void)
 }
 
 __attribute__ ((weak))
-void led_matix_init_user(void) {
+void rgb_matrix_init_user(void) {
 
 }
 

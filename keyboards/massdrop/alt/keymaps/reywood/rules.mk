@@ -1,7 +1,7 @@
 # project specific files
 SRC = led_programs.c
 SRC += matrix.c
-SRC += led_matrix_user.c
+SRC += rgb_matrix_user.c
 
 #For platform and packs
 ARM_ATSAM = SAMD51J18A
