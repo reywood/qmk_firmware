@@ -81,6 +81,8 @@ bool process_record_keymap(uint16_t keycode, keyrecord_t *record);
 #define CTRLC LCTL(KC_C)
 #define CTRLV LCTL(KC_V)
 
+#define ALTF4 LALT(KC_F4)
+
 #define GUIU LGUI(KC_UP)
 #define GUID LGUI(KC_DOWN)
 #define GUIL LGUI(KC_LEFT)
@@ -190,7 +192,7 @@ return false;
 if (record->event.pressed) { \
   timer_timeout(); \
   unregister_code(KC_LSFT); \
-  register_code(DE_ALGR); \
+  register_code(KC_ALGR); \
   if (lshift || rshift) { \
     unregister_code(kc2); \
     register_code(kc2); \
@@ -201,7 +203,7 @@ if (record->event.pressed) { \
     register_code(kc1); \
     unregister_code(kc1); \
   } \
-  unregister_code(DE_ALGR); \
+  unregister_code(KC_ALGR); \
 } \
 return false;
 

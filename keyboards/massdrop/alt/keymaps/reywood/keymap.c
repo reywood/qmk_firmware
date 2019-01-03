@@ -6,7 +6,10 @@ enum alt_keycodes {
   L_BRD,              //LED Brightness Decrease
   L_PTN,              //LED Pattern Select Next
   L_PTP,              //LED Pattern Select Previous
+<<<<<<< HEAD
   L_PTU,              //LED Pattern Select User Custom
+=======
+>>>>>>> master
   L_PSI,              //LED Pattern Speed Increase
   L_PSD,              //LED Pattern Speed Decrease
   L_T_MD,             //LED Toggle Mode
