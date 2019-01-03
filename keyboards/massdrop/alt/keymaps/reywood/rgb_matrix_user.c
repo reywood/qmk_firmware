@@ -1,10 +1,13 @@
 #include "quantum.h"
 #include "led_matrix.h"
 
+// These are all defined in tmk_core/protocol/arm_atsam/led_matrix.c
 extern issi3733_led_t *led_cur;
 extern uint8_t led_per_run;
 extern issi3733_led_t *lede;
 extern issi3733_led_t led_map[];
+extern led_disp_t disp;
+extern float breathe_mult;
 
 static uint16_t last_boost_update;
 static uint8_t led_boosts[ISSI3733_LED_COUNT];
@@ -16,17 +19,17 @@ static uint8_t led_cur_index;
 #define LED_BOOST_PROPAGATE 0.5
 #define LED_BOOST_PEAK 100
 
-#define MIN_RGB 0x050008
+#define MIN_RGB 0x030f00
 #define MIN_R (MIN_RGB >> 16 & 0xff)
 #define MIN_G (MIN_RGB >> 8 & 0xff)
 #define MIN_B (MIN_RGB & 0xff)
 
-#define MAX_RGB 0xc26eff
+#define MAX_RGB 0xffff00
 #define MAX_R (MAX_RGB >> 16 & 0xff)
 #define MAX_G (MAX_RGB >> 8 & 0xff)
 #define MAX_B (MAX_RGB & 0xff)
 
-#define UNDERGLOW_RGB 0x4f002e
+#define UNDERGLOW_RGB 0x0e2700
 #define UNDERGLOW_R (UNDERGLOW_RGB >> 16 & 0xff)
 #define UNDERGLOW_G (UNDERGLOW_RGB >> 8 & 0xff)
 #define UNDERGLOW_B (UNDERGLOW_RGB & 0xff)
@@ -82,6 +85,7 @@ void led_matrix_run(void) {
   if (led_cur == 0) { //Denotes start of new processing cycle in the case of chunked processing
     led_cur = led_map;
     led_cur_index = 0;
+    // init_breathing_cycle();
   }
   update_led_boosts();
 
@@ -100,6 +104,26 @@ void rgb_matrix_record_key_press(keyrecord_t *record) {
     set_nearest_led_to_max(key.col, key.row);
   }
 }
+
+
+// static void init_breathing_cycle() {
+//   breathe_mult = 1;
+
+//   if (led_animation_breathing)
+//   {
+//     led_animation_breathe_cur += breathe_step * breathe_dir;
+
+//     if (led_animation_breathe_cur >= BREATHE_MAX_STEP)
+//       breathe_dir = -1;
+//     else if (led_animation_breathe_cur <= BREATHE_MIN_STEP)
+//       breathe_dir = 1;
+
+//     //Brightness curve created for 256 steps, 0 - ~98%
+//     breathe_mult = 0.000015 * led_animation_breathe_cur * led_animation_breathe_cur;
+//     if (breathe_mult > 1) breathe_mult = 1;
+//     else if (breathe_mult < 0) breathe_mult = 0;
+//   }
+// }
 
 
 static void update_led_boosts(void) {

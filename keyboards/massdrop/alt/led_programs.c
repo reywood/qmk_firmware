@@ -1,4 +1,4 @@
-/*
+ /*
 Copyright 2018 Massdrop Inc.
 
 This program is free software: you can redistribute it and/or modify
@@ -99,11 +99,25 @@ led_setup_t leds_rainbow_s[] = {
     { .end = 1 },
 };
 
+//Rainbow scrolling
+led_setup_t leds_xmas_s[] = {
+    { .hs = 0,      .he = 12.5,   .rs = 255, .re = 0,   .gs = 0,   .ge = 0,   .bs = 0,   .be = 0,   .ef = EF_OVER | EF_SCR_R },
+    { .hs = 12.5,   .he = 25,     .rs = 0,   .re = 0,   .gs = 0,   .ge = 0,   .bs = 0,   .be = 0,   .ef = EF_OVER | EF_SCR_R },
+    { .hs = 25,     .he = 37.5,   .rs = 0,   .re = 0,   .gs = 255, .ge = 0,   .bs = 0,   .be = 0,   .ef = EF_OVER | EF_SCR_R },
+    { .hs = 37.5,   .he = 50,     .rs = 0,   .re = 0,   .gs = 0,   .ge = 0,   .bs = 0,   .be = 0,   .ef = EF_OVER | EF_SCR_R },
+    { .hs = 50,     .he = 62.5,   .rs = 255, .re = 0,   .gs = 0,   .ge = 0,   .bs = 0,   .be = 0,   .ef = EF_OVER | EF_SCR_R },
+    { .hs = 62.5,   .he = 75,     .rs = 0,   .re = 0,   .gs = 0,   .ge = 0,   .bs = 0,   .be = 0,   .ef = EF_OVER | EF_SCR_R },
+    { .hs = 75,     .he = 87.5,   .rs = 0,   .re = 0,   .gs = 255, .ge = 0,   .bs = 0,   .be = 0,   .ef = EF_OVER | EF_SCR_R },
+    { .hs = 87.5,   .he = 100,    .rs = 0,   .re = 0,   .gs = 0,   .ge = 0,   .bs = 0,   .be = 0,   .ef = EF_OVER | EF_SCR_R },
+    { .end = 1 },
+};
+
 //Add new LED animations here using one from above as example
 //The last entry must be { .end = 1 }
 //Add the new animation name to the list below following its format
 
 void *led_setups[] = {
+    leds_xmas_s,
     leds_rainbow_s,
     leds_rainbow_ns,
     leds_teal_salmon,
