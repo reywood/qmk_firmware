@@ -25,6 +25,13 @@
 
 #include "quantum/color.h"
 
+#if defined (RGB_BACKLIGHT_M6_B)
+#define BACKLIGHT_LED_COUNT 6
+#else
+#define BACKLIGHT_LED_COUNT 72
+#endif
+
+
 typedef struct PACKED
 {
 	uint8_t h;
@@ -87,3 +94,4 @@ void backlight_update_pwm_buffers(void);
 bool process_record_backlight(uint16_t keycode, keyrecord_t *record);
 
 void backlight_set_key_hit(uint8_t row, uint8_t col);
+void backlight_set_color( int index, uint8_t red, uint8_t green, uint8_t blue );
