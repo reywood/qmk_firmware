@@ -1,7 +1,7 @@
 
 
 # project specific files
-SRC =   rgb_backlight.c \
+SRC = rgb_backlight.c \
 		camping.c \
 		quantum/color.c \
 		drivers/issi/is31fl3731.c \
