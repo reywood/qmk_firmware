@@ -11,11 +11,12 @@
 #define SATURATION 250
 #define HUE_FLICKER_STEP 5
 #define BRIGHTNESS_FLICKER_STEP 5
+#define INVALID_LED 255
 
-uint8_t led_key_hit[DRIVER_LED_TOTAL]; // time since last key press
-static uint8_t current_led_key_hue[DRIVER_LED_TOTAL];
+static uint8_t current_led_brightness[DRIVER_LED_TOTAL];
+static uint8_t current_led_hue[DRIVER_LED_TOTAL];
 
-static void map_row_column_to_led2( uint8_t row, uint8_t column, uint8_t *led ) {
+static void map_row_column_to_key_led(uint8_t row, uint8_t column, uint8_t *led) {
     rgb_led current_led;
 
     for (uint8_t i = 0; i < DRIVER_LED_TOTAL; i++) {
@@ -25,6 +26,8 @@ static void map_row_column_to_led2( uint8_t row, uint8_t column, uint8_t *led ) 
             return;
         }
     }
+
+    *led = INVALID_LED;
 }
 
 static uint8_t random_flicker(uint8_t value, uint8_t step, uint8_t min, uint8_t max) {
@@ -35,7 +38,7 @@ static uint8_t random_flicker(uint8_t value, uint8_t step, uint8_t min, uint8_t 
 }
 
 static bool has_enough_time_passed(uint8_t *tick) {
-  if (*tick < 5) {
+  if (*tick < 8) {
     (*tick)++;
     return FALSE;
   }
@@ -60,17 +63,15 @@ static void update_esc_flicker(void) {
   RGB esc_rgb = hsv_to_rgb(esc_hsv);
 
   uint8_t esc_led;
-  map_row_column_to_led2(0, 0, &esc_led);
-  rgb_matrix_set_color(esc_led, esc_rgb.r, esc_rgb.g, esc_rgb.b);
+  map_row_column_to_key_led(0, 0, &esc_led);
+  if (esc_led != INVALID_LED) {
+    rgb_matrix_set_color(esc_led, esc_rgb.r, esc_rgb.g, esc_rgb.b);
+  }
 }
 
 static void update_key_flicker(uint8_t led) {
-  uint8_t brightness = MAX(MAX_BRIGHTNESS - led_key_hit[led], 0);
-  if (brightness > 0) {
-    current_led_key_hue[led] = random_flicker(current_led_key_hue[led], HUE_FLICKER_STEP, MIN_HUE, MAX_HUE);
-    brightness = random_flicker(brightness, BRIGHTNESS_FLICKER_STEP, 0, MAX_BRIGHTNESS);
-
-    HSV hsv = { .h = current_led_key_hue[led], .s = SATURATION, .v = brightness };
+  if (current_led_brightness[led] > 0) {
+    HSV hsv = { .h = current_led_hue[led], .s = SATURATION, .v = current_led_brightness[led] };
     RGB rgb = hsv_to_rgb(hsv);
 
     rgb_matrix_set_color(led, rgb.r, rgb.g, rgb.b);
@@ -79,29 +80,30 @@ static void update_key_flicker(uint8_t led) {
   }
 }
 
-static void update_key_hits(void) {
+static void update_all_key_brightnesses_and_hues(void) {
   static uint8_t update_tick = 0;
   if (!has_enough_time_passed(&update_tick)) { return; }
 
   for (uint8_t i = 0; i < DRIVER_LED_TOTAL; i++) {
-    if (led_key_hit[i] < 255) {
-      led_key_hit[i]++;
+    if (current_led_brightness[i] > 0) {
+      current_led_brightness[i]--;
+      current_led_brightness[i] = random_flicker(current_led_brightness[i], BRIGHTNESS_FLICKER_STEP, 0, MAX_BRIGHTNESS);
+      current_led_hue[i] = random_flicker(current_led_hue[i], HUE_FLICKER_STEP, MIN_HUE, MAX_HUE);
     }
   }
 }
 
 void camping_init(void) {
   for (uint8_t i = 0; i < DRIVER_LED_TOTAL; i++) {
-    led_key_hit[i] = 255;
+    current_led_brightness[i] = 0;
   }
 }
 
 void camping_scan(void) {
-
-  update_key_hits();
+  update_all_key_brightnesses_and_hues();
 
   uint8_t esc_led;
-  map_row_column_to_led2(0, 0, &esc_led);
+  map_row_column_to_key_led(0, 0, &esc_led);
 
   for (int i = 0; i < DRIVER_LED_TOTAL; i++) {
     if (i == esc_led) {
@@ -114,8 +116,8 @@ void camping_scan(void) {
 
 void camping_record_key_press(keyrecord_t *record) {
   uint8_t led;
-  map_row_column_to_led2(record->event.key.row, record->event.key.col, &led);
+  map_row_column_to_key_led(record->event.key.row, record->event.key.col, &led);
   if (led >= 0 && led < DRIVER_LED_TOTAL) {
-    led_key_hit[led] = 0;
+    current_led_brightness[led] = MAX_BRIGHTNESS;
   }
 }
