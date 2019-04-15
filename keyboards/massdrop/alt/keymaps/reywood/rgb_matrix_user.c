@@ -1,35 +1,58 @@
 #include "quantum.h"
 #include "led_matrix.h"
 
-extern issi3733_led_t *led_cur;
-extern uint8_t led_per_run;
-extern issi3733_led_t *lede;
-extern issi3733_led_t led_map[];
+// Choose a theme, only uncomment one
+#define THEME_LASER
+// #define THEME_LIME
+// #define THEME_DEFAULT
 
-static uint16_t last_boost_update;
-static uint8_t led_boosts[ISSI3733_LED_COUNT];
-static uint8_t led_boost_index;
-static uint8_t led_cur_index;
+// Laser theme
+#ifdef THEME_LASER
+#define MIN_KEY_RGB 0x050008
+#define MAX_KEY_RGB 0xc26eff
+#define UNDERGLOW_RGB 0x4f002e
+#define INDICATOR_RGB 0xff1493
+#endif
+
+// Lime theme
+#ifdef THEME_LIME
+#define MIN_KEY_RGB 0x030f00
+#define MAX_KEY_RGB 0xffff00
+#define UNDERGLOW_RGB 0x0e2700
+#define INDICATOR_RGB 0xff0000
+#endif
+
+// Default theme
+#ifdef THEME_DEFAULT
+#define MIN_KEY_RGB 0x000000
+#define MAX_KEY_RGB 0xffffff
+#define UNDERGLOW_RGB 0x888888
+#define INDICATOR_RGB 0xff0000
+#endif
+
+// RGB components
+#define MIN_R (MIN_KEY_RGB >> 16 & 0xff)
+#define MIN_G (MIN_KEY_RGB >> 8 & 0xff)
+#define MIN_B (MIN_KEY_RGB & 0xff)
+
+#define MAX_R (MAX_KEY_RGB >> 16 & 0xff)
+#define MAX_G (MAX_KEY_RGB >> 8 & 0xff)
+#define MAX_B (MAX_KEY_RGB & 0xff)
+
+#define UNDERGLOW_R (UNDERGLOW_RGB >> 16 & 0xff)
+#define UNDERGLOW_G (UNDERGLOW_RGB >> 8 & 0xff)
+#define UNDERGLOW_B (UNDERGLOW_RGB & 0xff)
+
+#define INDICATOR_R (INDICATOR_RGB >> 16 & 0xff)
+#define INDICATOR_G (INDICATOR_RGB >> 8 & 0xff)
+#define INDICATOR_B (INDICATOR_RGB & 0xff)
+
 
 #define LED_BOOST_REFRESH_INTERVAL_IN_MS 40
 #define LED_BOOST_DECAY 0.7
 #define LED_BOOST_PROPAGATE 0.5
 #define LED_BOOST_PEAK 100
 
-#define MIN_RGB 0x050008
-#define MIN_R (MIN_RGB >> 16 & 0xff)
-#define MIN_G (MIN_RGB >> 8 & 0xff)
-#define MIN_B (MIN_RGB & 0xff)
-
-#define MAX_RGB 0xc26eff
-#define MAX_R (MAX_RGB >> 16 & 0xff)
-#define MAX_G (MAX_RGB >> 8 & 0xff)
-#define MAX_B (MAX_RGB & 0xff)
-
-#define UNDERGLOW_RGB 0x4f002e
-#define UNDERGLOW_R (UNDERGLOW_RGB >> 16 & 0xff)
-#define UNDERGLOW_G (UNDERGLOW_RGB >> 8 & 0xff)
-#define UNDERGLOW_B (UNDERGLOW_RGB & 0xff)
 
 #define UNDERGLOW_SCAN_CODE 255
 
@@ -43,6 +66,7 @@ static const uint8_t KEY_TO_LED_MAP[MATRIX_ROWS][MATRIX_COLS] = {
   {44, __, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57},
   {58, 59, 60, __, __, __, 61, __, __, __, 62, 63, 64, 65, 66},
 };
+#define CAPS_LOCK_LED_INDEX 30
 
 #define KEY_LED_COUNT 67
 #define KP(c, r) { .col = c, .row = r } // shorthand for keypos_t
@@ -53,6 +77,21 @@ static const keypos_t LED_TO_KEY_MAP[KEY_LED_COUNT] = {
   KP(0, 3),           KP(2, 3), KP(3, 3), KP(4, 3), KP(5, 3), KP(6, 3), KP(7, 3), KP(8, 3), KP(9, 3), KP(10, 3), KP(11, 3), KP(12, 3), KP(13, 3), KP(14, 3),
   KP(0, 4), KP(1, 4), KP(2, 4),                               KP(6, 4),                               KP(10, 4), KP(11, 4), KP(12, 4), KP(13, 4), KP(14, 4),
 };
+
+
+// These are all defined in tmk_core/protocol/arm_atsam/led_matrix.c
+extern issi3733_led_t *led_cur;
+extern uint8_t led_per_run;
+extern issi3733_led_t *lede;
+extern issi3733_led_t led_map[];
+extern led_disp_t disp;
+extern float breathe_mult;
+
+static uint16_t last_boost_update;
+static uint8_t led_boosts[ISSI3733_LED_COUNT];
+static uint8_t led_boost_index;
+static uint8_t led_cur_index;
+static bool is_caps_lock_on = 0;
 
 
 static void update_led_boosts(void);
@@ -66,6 +105,10 @@ static uint8_t get_led_boost_at_keypos(uint8_t row, uint8_t col);
 static void set_new_led_boosts(uint8_t* new_led_boosts);
 static uint8_t map_key_position_to_led_index(uint8_t col, uint8_t row);
 
+
+void led_set_user(uint8_t usb_led) {
+  is_caps_lock_on = IS_LED_ON(usb_led, USB_LED_CAPS_LOCK);
+}
 
 void rgb_matrix_init_user(void) {
   for (int i = 0; i < ISSI3733_LED_COUNT; i++) {
@@ -117,6 +160,10 @@ static void update_led_cur_rgb_values(void) {
     *led_cur->rgb.r = UNDERGLOW_R;
     *led_cur->rgb.g = UNDERGLOW_G;
     *led_cur->rgb.b = UNDERGLOW_B;
+  } else if (led_cur->scan == USB_LED_CAPS_LOCK_SCANCODE && is_caps_lock_on) {
+    *led_cur->rgb.r = INDICATOR_R;
+    *led_cur->rgb.g = INDICATOR_G;
+    *led_cur->rgb.b = INDICATOR_B;
   } else {
     *led_cur->rgb.r = calculate_new_color_component_value(MAX_R, MIN_R);
     *led_cur->rgb.g = calculate_new_color_component_value(MAX_G, MIN_G);
