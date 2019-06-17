@@ -2,26 +2,16 @@
 #include "rgb_matrix_user.h"
 
 enum alt_keycodes {
-  L_BRI = SAFE_RANGE, //LED Brightness Increase
-  L_BRD,              //LED Brightness Decrease
-  L_PTN,              //LED Pattern Select Next
-  L_PTP,              //LED Pattern Select Previous
-  L_PTU,              //LED Pattern Select User Custom
-  L_PSI,              //LED Pattern Speed Increase
-  L_PSD,              //LED Pattern Speed Decrease
-  L_T_MD,             //LED Toggle Mode
-  L_T_ONF,            //LED Toggle On / Off
-  L_ON,               //LED On
-  L_OFF,              //LED Off
-  L_T_BR,             //LED Toggle Breath Effect
-  L_T_PTD,            //LED Toggle Scrolling Pattern Direction
-  U_T_AUTO,           //USB Extra Port Toggle Auto Detect / Always Active
-  U_T_AGCR,           //USB Toggle Automatic GCR control
-  DBG_TOG,            //DEBUG Toggle On / Off
-  DBG_MTRX,           //DEBUG Toggle Matrix Prints
-  DBG_KBD,            //DEBUG Toggle Keyboard Prints
-  DBG_MOU,            //DEBUG Toggle Mouse Prints
-  MD_BOOT,            //Restart into bootloader after hold timeout
+  L_T_ONF = SAFE_RANGE, //LED Toggle On / Off
+  L_ON,                 //LED On
+  L_OFF,                //LED Off
+  U_T_AUTO,             //USB Extra Port Toggle Auto Detect / Always Active
+  U_T_AGCR,             //USB Toggle Automatic GCR control
+  DBG_TOG,              //DEBUG Toggle On / Off
+  DBG_MTRX,             //DEBUG Toggle Matrix Prints
+  DBG_KBD,              //DEBUG Toggle Keyboard Prints
+  DBG_MOU,              //DEBUG Toggle Mouse Prints
+  MD_BOOT,              //Restart into bootloader after hold timeout
 };
 
 #define TG_NKRO MAGIC_TOGGLE_NKRO //Toggle 6KRO / NKRO mode
@@ -41,16 +31,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [1] = LAYOUT(
     KC_GRV,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  _______, KC_MUTE, \
     _______, _______, _______,  KC_UP,  _______, _______, _______, U_T_AUTO,U_T_AGCR,_______, KC_PSCR, KC_SLCK, KC_PAUS, _______, KC_END, \
-    _______, _______, KC_LEFT, KC_DOWN, KC_RGHT, _______, _______, _______, _______, _______, _______, _______,          _______, _______, \
+    KC_CAPS, _______, KC_LEFT, KC_DOWN, KC_RGHT, _______, _______, _______, _______, _______, _______, _______,          _______, _______, \
     _______, _______, _______, _______, _______, MD_BOOT, TG_NKRO, _______, _______, _______, _______, _______,          KC_VOLU, _______, \
     _______, _______, _______,                            KC_MPLY,                              MO(2), _______, KC_MRWD, KC_VOLD, KC_MFFD  \
   ),
   /*
   [2] = LAYOUT(
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, \
-    L_T_BR,  L_PSD,   L_BRI,   L_PSI,   _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, \
-    L_T_PTD, L_PTP,   L_BRD,   L_PTN,   L_PTU  , _______, _______, _______, _______, _______, _______, _______,          _______, _______, \
-    _______, L_T_MD,  L_T_ONF, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______, _______, \
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, \
+    _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______, _______, \
+    _______, _______, L_T_ONF, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______, _______, \
     _______, _______, _______,                            _______,                            _______, _______, _______, _______, _______  \
   ),
   */
@@ -74,54 +64,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   rgb_matrix_record_key_press(record);
 
   switch (keycode) {
-    case L_BRI:
-      if (record->event.pressed) {
-        if (LED_GCR_STEP > LED_GCR_MAX - gcr_desired) gcr_desired = LED_GCR_MAX;
-        else gcr_desired += LED_GCR_STEP;
-        if (led_animation_breathing) gcr_breathe = gcr_desired;
-      }
-      return false;
-    case L_BRD:
-      if (record->event.pressed) {
-        if (LED_GCR_STEP > gcr_desired) gcr_desired = 0;
-        else gcr_desired -= LED_GCR_STEP;
-        if (led_animation_breathing) gcr_breathe = gcr_desired;
-      }
-      return false;
-    case L_PTN:
-      if (record->event.pressed) {
-        if (led_animation_id == led_setups_count - 1) led_animation_id = 0;
-        else led_animation_id++;
-      }
-      return false;
-    case L_PTU:
-      if (record->event.pressed) {
-        // TODO:
-      }
-      return false;
-    case L_PTP:
-      if (record->event.pressed) {
-        if (led_animation_id == 0) led_animation_id = led_setups_count - 1;
-        else led_animation_id--;
-      }
-      return false;
-    case L_PSI:
-      if (record->event.pressed) {
-        led_animation_speed += ANIMATION_SPEED_STEP;
-      }
-      return false;
-    case L_PSD:
-      if (record->event.pressed) {
-        led_animation_speed -= ANIMATION_SPEED_STEP;
-        if (led_animation_speed < 0) led_animation_speed = 0;
-      }
-      return false;
-    case L_T_MD:
-      if (record->event.pressed) {
-        led_lighting_mode++;
-        if (led_lighting_mode > LED_MODE_MAX_INDEX) led_lighting_mode = LED_MODE_NORMAL;
-      }
-      return false;
     case L_T_ONF:
       if (record->event.pressed) {
         led_enabled = !led_enabled;
@@ -138,21 +80,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       if (record->event.pressed) {
         led_enabled = 0;
         I2C3733_Control_Set(led_enabled);
-      }
-      return false;
-    case L_T_BR:
-      if (record->event.pressed) {
-        led_animation_breathing = !led_animation_breathing;
-        if (led_animation_breathing) {
-          gcr_breathe = gcr_desired;
-          led_animation_breathe_cur = BREATHE_MIN_STEP;
-          breathe_dir = 1;
-        }
-      }
-      return false;
-    case L_T_PTD:
-      if (record->event.pressed) {
-        led_animation_direction = !led_animation_direction;
       }
       return false;
     case U_T_AUTO:
