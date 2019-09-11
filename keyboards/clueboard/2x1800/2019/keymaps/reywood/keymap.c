@@ -82,16 +82,18 @@ void matrix_init_user(void) {
 
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    uint16_t red = 0;
+
     if (record->event.pressed) {
         // cycle_through_leds();
-        if (keycode == ENC_BTN1) {
+        switch (keycode) {
+            case ENC_BTN1:
+                break;
 
-        }
-
-        if (keycode == DEFCON1) {
-            uint16_t red = 0;
-            rgb_matrix_sethsv(red, 255, 255);
-            rgb_matrix_mode(RGB_MATRIX_BAND_PINWHEEL_VAL);
+            case DEFCON1:
+                rgb_matrix_sethsv(red, 255, 255);
+                rgb_matrix_mode(RGB_MATRIX_BAND_PINWHEEL_VAL);
+                return false;
         }
     }
 
