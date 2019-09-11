@@ -19,6 +19,22 @@
 // place overrides here
 // #undef AUDIO_CLICKY
 
+
+// rgblight config
+// #undef RGBLED_NUM
+// #define RGBLED_NUM 26 // 46
+
+// rgb_matrix config
+#define DRIVER_LED_TOTAL (26 + 8 + 24 + 8)
+
+// rgb common config
+// #undef RGBLIGHT_ANIMATIONS
+#define RGBLIGHT_ANIMATIONS
+#define RGB_MATRIX_KEYPRESSES
+#define RGBLIGHT_SLEEP
+// #define RGBLIGHT_EFFECT_RAINBOW_MOOD
+
+
 #define ONE_UP_SOUND \
     Q__NOTE(_E6  ),  \
     Q__NOTE(_G6  ),  \
@@ -27,7 +43,8 @@
     Q__NOTE(_D7  ),  \
     Q__NOTE(_G7  ),
 
-#define STARTUP_SONG SONG(MARIO_THEME)
+// #define STARTUP_SONG SONG(MARIO_THEME)
+#define STARTUP_SONG SONG(COIN_SOUND)
 #define GOODBYE_SONG SONG(GOODBYE_SOUND)
 
 #undef UNDO_KEY
