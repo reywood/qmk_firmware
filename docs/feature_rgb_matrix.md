@@ -199,6 +199,7 @@ enum rgb_matrix_effects {
     RGB_MATRIX_SOLID_COLOR = 1,     // Static single hue, no speed support
     RGB_MATRIX_ALPHAS_MODS,         // Static dual hue, speed is hue for secondary hue
     RGB_MATRIX_GRADIENT_UP_DOWN,    // Static gradient top to bottom, speed controls how much gradient changes
+    RGB_MATRIX_GRADIENT_LEFT_RIGHT,    // Static gradient left to right, speed controls how much gradient changes
     RGB_MATRIX_BREATHING,           // Single hue brightness cycling animation
     RGB_MATRIX_BAND_SAT,        // Single hue band fading saturation scrolling left to right
     RGB_MATRIX_BAND_VAL,        // Single hue band fading brightness scrolling left to right
@@ -286,7 +287,7 @@ You can disable a single effect by defining `DISABLE_[EFFECT_NAME]` in your `con
 
 ## Custom RGB Matrix Effects
 
-By setting `RGB_MATRIX_CUSTOM_USER` (and/or `RGB_MATRIX_CUSTOM_KB`) in `rule.mk`, new effects can be defined directly from userspace, without having to edit any QMK core files.
+By setting `RGB_MATRIX_CUSTOM_USER` (and/or `RGB_MATRIX_CUSTOM_KB`) in `rules.mk`, new effects can be defined directly from userspace, without having to edit any QMK core files.
 
 To declare new effects, create a new `rgb_matrix_user/kb.inc` that looks something like this:
 
