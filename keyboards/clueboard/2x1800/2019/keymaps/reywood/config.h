@@ -35,6 +35,9 @@
 // #define RGBLIGHT_EFFECT_RAINBOW_MOOD
 
 
+#ifdef ONE_UP_SOUND
+#undef ONE_UP_SOUND
+#endif
 #define ONE_UP_SOUND \
     Q__NOTE(_E6  ),  \
     Q__NOTE(_G6  ),  \
