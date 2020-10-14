@@ -14,10 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "2019.h"
-#include "encoder.h"
 
 void matrix_init_kb(void) {
     // Set our LED pins as output
+    setPinOutput(D6);
     setPinOutput(B4);
     setPinOutput(B5);
     setPinOutput(B6);
@@ -29,6 +29,31 @@ void matrix_init_kb(void) {
     // Run the keymap level init
     matrix_init_user();
 }
+
+#ifdef DRAWING_ENABLE
+bool drawing_mode = false;
+bool btn1_pressed = false;
+bool btn2_pressed = false;
+bool btn3_pressed = false;
+bool btn4_pressed = false;
+
+void check_encoder_buttons(void) {
+    if (btn1_pressed && btn2_pressed && btn3_pressed && btn4_pressed) {
+        // All 4 buttons pressed, toggle drawing mode
+	if (drawing_mode) {
+            dprintf("Turning drawing mode off.\n");
+            drawing_mode = false;
+            writePinLow(D6);
+	    unregister_code(KC_BTN1);
+	} else {
+            dprintf("Turning drawing mode on.\n");
+            drawing_mode = true;
+            writePinHigh(D6);
+	    register_code(KC_BTN1);
+	}
+    }
+}
+#endif
 
 #ifdef SHAKE_ENABLE
 uint8_t tilt_state = 0x11;
@@ -64,40 +89,62 @@ void matrix_scan_kb(void) {
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
-    if (record->event.pressed) {
-        if (keycode == ENC_BTN1) {
-            
-        }
+#ifdef DRAWING_ENABLE
+    if (keycode == ENC_BTN1) {
+        if (record->event.pressed) {
+            btn1_pressed = true;
+	    register_code(KC_BTN1);
+	} else {
+            btn1_pressed = false;
+	    unregister_code(KC_BTN1);
+	}
     }
+    if (keycode == ENC_BTN2) {
+        if (record->event.pressed) {
+            btn2_pressed = true;
+	    register_code(KC_BTN2);
+	} else {
+            btn2_pressed = false;
+	    unregister_code(KC_BTN2);
+	}
+    }
+    if (keycode == ENC_BTN3) {
+        if (record->event.pressed) {
+            btn3_pressed = true;
+	    register_code(KC_BTN3);
+	} else {
+            btn3_pressed = false;
+	    unregister_code(KC_BTN3);
+	}
+    }
+    if (keycode == ENC_BTN4) {
+        if (record->event.pressed) {
+            btn4_pressed = true;
+	    register_code(KC_BTN4);
+	} else {
+            btn4_pressed = false;
+	    unregister_code(KC_BTN4);
+	}
+    }
+
+    check_encoder_buttons();
+#endif
 
     return process_record_user(keycode, record);
 }
 
-void led_set_kb(uint8_t usb_led) {
-    // Toggle numlock as needed
-    if (usb_led & (1<<USB_LED_NUM_LOCK)) {
-        writePinHigh(B4);
-    } else {
-        writePinLow(B4);
+bool led_update_kb(led_t led_state) {
+    bool res = led_update_user(led_state);
+    if(res) {
+        writePin(B4, !led_state.num_lock);
+        writePin(B5, !led_state.caps_lock);
+        writePin(B6, !led_state.scroll_lock);
     }
 
-    // Toggle capslock as needed
-    if (usb_led & (1<<USB_LED_CAPS_LOCK)) {
-        writePinHigh(B5);
-    } else {
-        writePinLow(B5);
-    }
-
-    // Toggle scrolllock as needed
-    if (usb_led & (1<<USB_LED_SCROLL_LOCK)) {
-        writePinHigh(B6);
-    } else {
-        writePinLow(B6);
-    }
-
-    led_set_user(usb_led);
+    return res;
 }
 
+__attribute__ ((weak))
 bool encoder_update_keymap(int8_t index, bool clockwise) {
     return false;
 }
